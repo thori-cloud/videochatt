@@ -11,27 +11,31 @@ app.set("view engine", "ejs");
 app.use(express.static("public"));
 
 app.get("/", (req, res) => {
-  res.redirect(`/${uuidv4()}`);
+    res.redirect(`/${uuidv4()}`);
 });
 
 app.get("/:room", (req, res) => {
-  res.render("room", { room_id: req.params.room });
+    res.render("room", { room_id: req.params.room });
 });
 
 io.on("connection", (socket) => {
-  socket.on("join-room", (roomid, userid, username) => {
-    socket.join(roomid);
+    socket.on("join-room", (roomid, userid, username) => {
+        socket.join(roomid);
 
-    socket.to(roomid).emit("user-connected", userid);
+        socket.to(roomid).emit("user-connected", userid);
 
-    socket.on("message", (message) => {
-      io.to(roomid).emit("createmessage", message, userid, username);
+        socket.on("message", (message) => {
+            io.to(roomid).emit("createmessage", message, userid, username);
+        });
+
+        socket.on("disconnect", () => {
+            socket.to(roomid).emit("user-disconnected", userid);
+        });
     });
-
-    socket.on("disconnect", () => {
-      socket.to(roomid).emit("user-disconnected", userid);
-    });
-  });
 });
 
-server.listen(3000);
+// server.listen(3000);
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log("Server is running on port 3000");
+});
